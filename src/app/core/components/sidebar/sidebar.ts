@@ -15,6 +15,7 @@ import {
   DollarSign,
   Megaphone,
   LandPlot,
+  ShoppingCart,
 } from 'lucide-angular';
 import { AuthService } from '../../services/auth.service';
 import { IsAdminDirective } from '../../directives/is-admin.directive';
@@ -60,6 +61,12 @@ export class Sidebar {
       id: 'menu-contracts'
     },
     {
+      label: 'Órdenes de Compra',
+      route: '/purchase-orders',
+      icon: ShoppingCart,
+      id: 'menu-purchase-orders'
+    },
+    {
       label: 'Marketing',
       route: '/marketing',
       icon: Megaphone,
@@ -69,7 +76,7 @@ export class Sidebar {
 
   private menuIdCounter = 0;
 
-  icons = { Home, Users, CreditCard, Bell, Settings, LogOut, FileText, MapPin, FileCheck, DollarSign, Megaphone, LandPlot };
+  icons = { Home, Users, CreditCard, Bell, Settings, LogOut, FileText, MapPin, FileCheck, DollarSign, Megaphone, LandPlot, ShoppingCart };
 
   constructor(public auth_service:AuthService){
 

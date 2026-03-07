@@ -7,7 +7,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { ProductService } from '../../services/product.service';
 import { Product } from '../../models/product.model';
 import { DatatableWrapperComponent } from '../../../../core/components/datatable-wrapper/datatable-wrapper.component';
-import { IDatatableConfig } from '../../../../core/components/datatable-wrapper/datatable-wrapper.interface';
+import { IDatatableConfig, ISortEvent } from '../../../../core/components/datatable-wrapper/datatable-wrapper.interface';
 import { SearchComponent } from '../../../../core/components/search/search.component';
 import { ButtonComponent } from '../../../../core/components/button/button.component';
 import { ProductDetailModalComponent } from '../product-detail-modal/product-detail-modal.component';
@@ -37,6 +37,7 @@ export class ProductListComponent implements OnDestroy {
       { name: 'SKU', prop: 'sku', sortable: true, canAutoResize: true, width: 120 },
       { name: 'Nombre', prop: 'name', sortable: true, canAutoResize: true, width: 200 },
       { name: 'Descripción', prop: 'description', sortable: false, canAutoResize: true, width: 250 },
+      { name: 'Base UoM', prop: 'base_uom_id', sortable: true, canAutoResize: true, width: 120 },
       { name: 'Detalle', prop: 'detail', sortable: false, canAutoResize: true, width: 100 },
     ],
     externalPaging: false,
@@ -53,6 +54,7 @@ export class ProductListComponent implements OnDestroy {
   products = signal<Product[]>([]);
   ArrowRight = ArrowRight;
   search = '';
+  currentSort: ISortEvent | null = null;
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -103,6 +105,57 @@ export class ProductListComponent implements OnDestroy {
   onSearchChange(searchTerm: string) {
     this.search = searchTerm;
     this.loadProducts();
+  }
+
+  onSortChange(event: ISortEvent) {
+    this.currentSort = event;
+    this.sortProducts();
+  }
+
+  private sortProducts() {
+    if (!this.currentSort || !this.currentSort.direction) {
+      // No sorting, reload original data
+      this.loadProducts();
+      return;
+    }
+
+    const sortedRows = [...this.table_config().rows];
+    const { prop } = this.currentSort.column;
+    const { direction } = this.currentSort;
+
+    sortedRows.sort((a: any, b: any) => {
+      const aValue = a[prop];
+      const bValue = b[prop];
+
+      // Handle null values - place them at the end
+      if (aValue === null || aValue === undefined) {
+        return 1;
+      }
+      if (bValue === null || bValue === undefined) {
+        return -1;
+      }
+
+      // Compare values
+      if (aValue < bValue) {
+        return direction === 'asc' ? -1 : 1;
+      }
+      if (aValue > bValue) {
+        return direction === 'asc' ? 1 : -1;
+      }
+      return 0;
+    });
+
+    this.table_config.update(c => ({
+      ...c,
+      rows: sortedRows
+    }));
+  }
+
+  getBaseUoMDisplay(product: Product): string {
+    if (product.base_uom && product.base_uom.code) {
+      return product.base_uom.code;
+    }
+    return product.base_uom_id ? product.base_uom_id : '—';
   }
 
   openCreateProductModal() {
@@ -182,6 +235,25 @@ export class ProductListComponent implements OnDestroy {
     this.dialog.open(UomsDialogComponent, {
       width: '400px',
       disableClose: false
+    });
+  }
+
+  duplicateProduct(product: Product) {
+    this.productService.duplicateProduct(product.id).subscribe({
+      next: (duplicatedProduct) => {
+        this.snackBar.openFromComponent(CustomSnackbarComponent, {
+          data: { message: 'Producto duplicado correctamente', type: 'success' },
+          duration: 3000
+        });
+        this.loadProducts();
+      },
+      error: (error) => {
+        const errorMessage = error.error?.message || 'Error al duplicar producto';
+        this.snackBar.openFromComponent(CustomSnackbarComponent, {
+          data: { message: errorMessage, type: 'error' },
+          duration: 5000
+        });
+      }
     });
   }
 }

@@ -34,6 +34,7 @@
   <app-datatable-wrapper
     [config]="table_config()"
     [rowTemplate]="tableTemplate"
+    (sortChange)="onSortChange($event)"
     (rowClick)="viewDetail($event)">
   </app-datatable-wrapper>
 </div>
@@ -46,14 +47,26 @@
   </td>
   <td>{{ item.name }}</td>
   <td>{{ item.description }}</td>
+  <td class="text-center">
+    <span class="text-gray-600">{{ getBaseUoMDisplay(item) }}</span>
+  </td>
   <td (click)="$event.stopPropagation()">
-    <app-button
-      text="Detalle"
-      size="sm"
-      [fullWidth]="false"
-      custom_class="btn_primary"
-      (clicked)="viewDetail(item)"
-      [icon]="ArrowRight">
-    </app-button>
+    <div class="flex gap-2">
+      <app-button
+        text="Duplicar"
+        size="sm"
+        [fullWidth]="false"
+        custom_class="btn_secondary"
+        (clicked)="duplicateProduct(item)">
+      </app-button>
+      <app-button
+        text="Detalle"
+        size="sm"
+        [fullWidth]="false"
+        custom_class="btn_primary"
+        (clicked)="viewDetail(item)"
+        [icon]="ArrowRight">
+      </app-button>
+    </div>
   </td>
 </ng-template>

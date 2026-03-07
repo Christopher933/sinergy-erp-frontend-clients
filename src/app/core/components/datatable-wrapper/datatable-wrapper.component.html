@@ -20,7 +20,9 @@
         <tr>
           <th *ngFor="let column of config?.columns; trackBy: trackByIndex" 
               [style.width]="column.width ? column.width + 'px' : 'auto'"
-              [ngClass]="getSortIndicatorClass(column)">
+              [ngClass]="getSortIndicatorClass(column)"
+              [style.cursor]="column.sortable ? 'pointer' : 'default'"
+              (click)="column.sortable && onSortChange({ column: column })">
             <span class="column-header">
               {{ column.name }}
               <span class="sort-indicator" *ngIf="isColumnSorted(column)">

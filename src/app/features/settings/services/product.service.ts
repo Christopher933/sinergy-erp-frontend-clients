@@ -108,4 +108,20 @@ export class ProductService {
   deleteUOMCatalogItem(id: string): Observable<void> {
     return this.http.delete<void>(`${this.api}/uom-catalog/${id}`);
   }
+
+  getAssignedUoMs(productId: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.api}/tenant/products/${productId}/uoms`);
+  }
+
+  checkInventoryMovements(productId: string): Observable<{ has_movements: boolean }> {
+    return this.http.get<{ has_movements: boolean }>(`${this.api}/tenant/products/${productId}/inventory-movements`);
+  }
+
+  validateBaseUoM(productId: string, baseUoMId: string): Observable<{ valid: boolean }> {
+    return this.http.post<{ valid: boolean }>(`${this.api}/tenant/products/${productId}/validate-base-uom`, { base_uom_id: baseUoMId });
+  }
+
+  duplicateProduct(productId: string): Observable<Product> {
+    return this.http.post<Product>(`${this.api}/tenant/products/${productId}/duplicate`, {});
+  }
 }

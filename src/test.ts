@@ -10,4 +10,3 @@ if (!getTestBed().platform) {
   );
 }
 
-

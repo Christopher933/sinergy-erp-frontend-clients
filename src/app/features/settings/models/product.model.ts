@@ -11,6 +11,12 @@ export interface SubCategory {
   description?: string;
 }
 
+export interface UoM {
+  id: string;
+  code: string;
+  name: string;
+}
+
 export interface Product {
   id: string;
   tenant_id: string;
@@ -19,6 +25,8 @@ export interface Product {
   description?: string | null;
   category_id?: string;
   subcategory_id?: string;
+  base_uom_id?: string | null;
+  base_uom?: UoM | null;
   uoms?: any[];
   uom_relationships?: any[];
   vendor_prices?: any[];
@@ -32,9 +40,12 @@ export interface CreateProductDto {
   description?: string;
   category_id?: string;
   subcategory_id?: string;
+  base_uom_id?: string;
 }
 
-export interface UpdateProductDto extends Partial<CreateProductDto> {}
+export interface UpdateProductDto extends Partial<CreateProductDto> {
+  base_uom_id?: string | null;
+}
 
 export interface ProductListResponse {
   data: Product[];
