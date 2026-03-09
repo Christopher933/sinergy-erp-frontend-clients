@@ -3,8 +3,11 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatDialog } from '@angular/material/dialog';
 import { POSService } from '../../services/pos.service';
 import { PaymentMethod } from '../../models/pos.model';
+import { OpenShiftDialogComponent } from '../../components/open-shift-dialog/open-shift-dialog.component';
+import { CloseShiftDialogComponent } from '../../components/close-shift-dialog/close-shift-dialog.component';
 
 @Component({
   selector: 'app-payment',
@@ -39,7 +42,8 @@ export class PaymentComponent implements OnInit {
     private posService: POSService,
     private router: Router,
     private route: ActivatedRoute,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private dialog: MatDialog
   ) {}
 
   ngOnInit(): void {
@@ -81,48 +85,88 @@ export class PaymentComponent implements OnInit {
   }
   
   openCashShift(): void {
-    const warehouseId = this.selectedOrder()?.warehouse_id || this.orders()[0]?.warehouse_id;
-    
-    if (!warehouseId) {
-      this.snackBar.open('No se puede determinar el almacén', 'Cerrar', { duration: 3000 });
-      return;
-    }
-    
-    // Prompt for initial cash amount
-    const initialCash = prompt('Ingresa el monto inicial de efectivo en caja:', '1000');
-    
-    if (initialCash === null) {
-      return; // User cancelled
-    }
-    
-    const amount = parseFloat(initialCash);
-    if (isNaN(amount) || amount < 0) {
-      this.snackBar.open('Monto inválido', 'Cerrar', { duration: 3000 });
-      return;
-    }
-    
-    this.checkingShift.set(true);
-    this.posService.openCashShift({
-      warehouse_id: warehouseId,
-      cashier_id: '', // Will be set by backend from JWT
-      opening_balance: amount
-    }).subscribe({
-      next: (shift) => {
-        this.activeCashShift.set(shift);
-        this.checkingShift.set(false);
-        this.snackBar.open('Turno de caja abierto exitosamente', 'Cerrar', { duration: 3000 });
-      },
-      error: (error) => {
-        this.checkingShift.set(false);
-        this.snackBar.open(error.error?.message || 'Error al abrir turno de caja', 'Cerrar', { duration: 5000 });
+    const dialogRef = this.dialog.open(OpenShiftDialogComponent, {
+      width: '600px',
+      disableClose: true
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (!result) {
+        return; // User cancelled
       }
+
+      const { warehouse_id, opening_balance, notes } = result;
+
+      this.checkingShift.set(true);
+      this.posService.openCashShift({
+        warehouse_id,
+        cashier_id: '',
+        opening_balance
+      }).subscribe({
+        next: (shift) => {
+          this.activeCashShift.set(shift);
+          this.checkingShift.set(false);
+          this.snackBar.open('Turno de caja abierto exitosamente', 'Cerrar', { duration: 3000 });
+        },
+        error: (error) => {
+          this.checkingShift.set(false);
+          this.snackBar.open(error.error?.message || 'Error al abrir turno de caja', 'Cerrar', { duration: 5000 });
+        }
+      });
+    });
+  }
+  
+  closeCashShift(): void {
+    const shift = this.activeCashShift();
+    
+    if (!shift) {
+      this.snackBar.open('No hay turno activo para cerrar', 'Cerrar', { duration: 3000 });
+      return;
+    }
+
+    const dialogRef = this.dialog.open(CloseShiftDialogComponent, {
+      width: '650px',
+      disableClose: true,
+      data: { shift }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (!result) {
+        return; // User cancelled
+      }
+
+      const { closing_balance, notes } = result;
+
+      this.checkingShift.set(true);
+      this.posService.closeCashShift(shift.id, {
+        closing_balance,
+        notes
+      }).subscribe({
+        next: (closedShift) => {
+          this.activeCashShift.set(null);
+          this.checkingShift.set(false);
+          
+          const difference = closedShift.difference || 0;
+          const diffText = difference === 0 
+            ? 'Sin diferencia' 
+            : difference > 0 
+              ? `Sobrante: ${this.formatCurrency(difference)}`
+              : `Faltante: ${this.formatCurrency(Math.abs(difference))}`;
+          
+          this.snackBar.open(`Turno cerrado. ${diffText}`, 'Cerrar', { duration: 5000 });
+        },
+        error: (error) => {
+          this.checkingShift.set(false);
+          this.snackBar.open(error.error?.message || 'Error al cerrar turno de caja', 'Cerrar', { duration: 5000 });
+        }
+      });
     });
   }
 
   loadOrders(): void {
     this.loading.set(true);
 
-    this.posService.getOrders().subscribe({
+    this.posService.getOrders({ status: 'pending' }).subscribe({
       next: (response) => {
         const orders = Array.isArray(response) ? response : response.data || [];
         this.orders.set(orders);

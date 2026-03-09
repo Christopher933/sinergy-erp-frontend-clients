@@ -14,8 +14,112 @@
     font-size: 3rem;
     font-weight: 700;
     color: white;
-    margin: 0;
+    margin: 0 0 2rem 0;
     text-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+}
+
+// Cash Shift Status Bar
+.shift-status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 1.5rem 2rem;
+  max-width: 800px;
+  margin: 0 auto;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.shift-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+}
+
+.shift-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  
+  &.active {
+    background: rgba(16, 185, 129, 0.2);
+    color: #d1fae5;
+    border: 2px solid rgba(16, 185, 129, 0.4);
+  }
+  
+  &.inactive {
+    background: rgba(239, 68, 68, 0.2);
+    color: #fecaca;
+    border: 2px solid rgba(239, 68, 68, 0.4);
+  }
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+.shift-details {
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 500;
+  opacity: 0.9;
+}
+
+.btn-open-shift,
+.btn-close-shift {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1.75rem;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+.btn-open-shift {
+  background: white;
+  color: #667eea;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+
+  &:hover:not(:disabled) {
+    background: #f9fafb;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  }
+}
+
+.btn-close-shift {
+  background: rgba(239, 68, 68, 0.9);
+  color: white;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+
+  &:hover:not(:disabled) {
+    background: #ef4444;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(239, 68, 68, 0.4);
   }
 }
 
@@ -70,13 +174,40 @@
 }
 
 @media (max-width: 768px) {
+  .pos-home {
+    padding: 1rem;
+  }
+
+  .pos-header {
+    margin-bottom: 2rem;
+
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 1.5rem;
+    }
+  }
+
+  .shift-status-bar {
+    flex-direction: column;
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .shift-info {
+    flex-direction: column;
+    width: 100%;
+    text-align: center;
+  }
+
+  .btn-open-shift,
+  .btn-close-shift {
+    width: 100%;
+    justify-content: center;
+  }
+
   .pos-options {
     grid-template-columns: 1fr;
     gap: 2rem;
-  }
-
-  .pos-header h1 {
-    font-size: 2rem;
   }
 
   .pos-option {

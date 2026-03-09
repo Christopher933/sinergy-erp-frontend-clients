@@ -159,23 +159,26 @@
     font-size: 0.75rem;
     font-weight: 600;
     text-transform: uppercase;
+    letter-spacing: 0.05em;
 
-    &.status-pending,
-    &.status-Pendiente {
+    &.status-pending {
       background: #fef3c7;
       color: #92400e;
     }
 
-    &.status-completed,
-    &.status-Completada {
+    &.status-completed {
       background: #d1fae5;
       color: #065f46;
     }
 
-    &.status-cancelled,
-    &.status-Cancelada {
+    &.status-cancelled {
       background: #fee2e2;
       color: #991b1b;
+    }
+    
+    &.status-in_progress {
+      background: #dbeafe;
+      color: #1e40af;
     }
   }
 }

@@ -1,6 +1,49 @@
 <div class="pos-home">
   <div class="pos-header">
     <h1>Punto de Venta</h1>
+    
+    <!-- Cash Shift Status Bar -->
+    <div class="shift-status-bar">
+      @if (activeCashShift()) {
+        <div class="shift-info">
+          <div class="shift-badge active">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+              <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+            </svg>
+            <span>Turno Activo</span>
+          </div>
+          <div class="shift-details">
+            <span>Apertura: {{ formatCurrency(parseFloat(activeCashShift().initial_cash) || 0) }}</span>
+          </div>
+        </div>
+        <button class="btn-close-shift" (click)="closeCashShift()" [disabled]="checkingShift()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="9" y1="9" x2="15" y2="15"></line>
+            <line x1="15" y1="9" x2="9" y2="15"></line>
+          </svg>
+          Cerrar Turno
+        </button>
+      } @else {
+        <div class="shift-info">
+          <div class="shift-badge inactive">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+              <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+            </svg>
+            <span>Sin Turno Activo</span>
+          </div>
+        </div>
+        <button class="btn-open-shift" (click)="openCashShift()" [disabled]="checkingShift()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+          </svg>
+          {{ checkingShift() ? 'Verificando...' : 'Abrir Turno' }}
+        </button>
+      }
+    </div>
   </div>
 
   <div class="pos-options">
@@ -26,8 +69,8 @@
           <polyline points="10 9 9 9 8 9"></polyline>
         </svg>
       </div>
-      <h2>Órdenes Pendientes</h2>
-      <p>Ver órdenes en proceso</p>
+      <h2>Ver Órdenes</h2>
+      <p>Consultar todas las órdenes</p>
     </div>
 
     <div class="pos-option" (click)="navigateToPayment()">

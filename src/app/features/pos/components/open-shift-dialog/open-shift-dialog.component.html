@@ -1,0 +1,86 @@
+<div class="dialog-container">
+  <h2 mat-dialog-title>Abrir Turno de Caja</h2>
+  
+  <mat-dialog-content>
+    <div class="form-content">
+      <!-- Warehouse Selection -->
+      <div class="form-field">
+        <label for="warehouse">Almacén *</label>
+        @if (loading()) {
+          <div class="loading-message">Cargando almacenes...</div>
+        }
+        <select 
+          id="warehouse"
+          [ngModel]="selectedWarehouseId()"
+          (ngModelChange)="selectedWarehouseId.set($event)"
+          [disabled]="loading()"
+          required
+        >
+          <option value="">Selecciona un almacén</option>
+          @for (warehouse of warehouses(); track warehouse.id) {
+            <option [value]="warehouse.id">{{ warehouse.name }}</option>
+          }
+        </select>
+        @if (!loading() && warehouses().length === 0) {
+          <div class="error-message">No se encontraron almacenes</div>
+        }
+      </div>
+
+      <!-- Opening Balance -->
+      <div class="form-field">
+        <label for="balance">Monto Inicial de Efectivo *</label>
+        <div class="currency-input">
+          <span class="currency-symbol">$</span>
+          <input 
+            type="number" 
+            id="balance"
+            [ngModel]="openingBalance()"
+            (ngModelChange)="openingBalance.set($event)"
+            min="0"
+            step="0.01"
+            required
+          />
+        </div>
+      </div>
+
+      <!-- Notes -->
+      <div class="form-field">
+        <label for="notes">Notas (opcional)</label>
+        <textarea 
+          id="notes"
+          [ngModel]="notes()"
+          (ngModelChange)="notes.set($event)"
+          rows="3"
+          placeholder="Ej: Turno matutino, Caja principal, etc."
+        ></textarea>
+      </div>
+
+      <div class="info-message">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="16" x2="12" y2="12"></line>
+          <line x1="12" y1="8" x2="12.01" y2="8"></line>
+        </svg>
+        <p>El turno se asociará automáticamente a tu usuario. Asegúrate de contar el efectivo inicial antes de abrir el turno.</p>
+      </div>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button 
+      mat-button 
+      (click)="onCancel()"
+      class="btn-cancel"
+    >
+      Cancelar
+    </button>
+    <button 
+      mat-raised-button 
+      (click)="onConfirm()"
+      class="btn-confirm"
+      [disabled]="!selectedWarehouseId() || openingBalance() < 0"
+    >
+      Abrir Turno
+    </button>
+  </mat-dialog-actions>
+</div>

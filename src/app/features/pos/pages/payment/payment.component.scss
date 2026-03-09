@@ -497,6 +497,12 @@
   gap: 1rem;
 }
 
+.shift-status-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .shift-status {
   display: flex;
   align-items: center;
@@ -509,6 +515,35 @@
   &.active {
     background: #d1fae5;
     color: #065f46;
+  }
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+.btn-close-shift {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover:not(:disabled) {
+    background: #dc2626;
+    transform: translateY(-1px);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
   }
 
   svg {

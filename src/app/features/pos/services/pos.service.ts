@@ -257,6 +257,13 @@ export class POSService {
   }
   
   /**
+   * Get cash shift report (detailed)
+   */
+  getCashShiftReport(shiftId: string): Observable<any> {
+    return this.http.get(`${this.API_URL}/cash-shifts/${shiftId}/report`);
+  }
+  
+  /**
    * Close cash shift
    */
   closeCashShift(shiftId: string, closeData: {

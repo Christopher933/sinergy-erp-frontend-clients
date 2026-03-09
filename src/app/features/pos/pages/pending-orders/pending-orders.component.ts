@@ -65,4 +65,14 @@ export class PendingOrdersComponent implements OnInit {
       minute: '2-digit'
     });
   }
+  
+  getStatusLabel(status: string): string {
+    const statusMap: { [key: string]: string } = {
+      'pending': 'Pendiente',
+      'completed': 'Completada',
+      'cancelled': 'Cancelada',
+      'in_progress': 'En Proceso'
+    };
+    return statusMap[status] || status;
+  }
 }
