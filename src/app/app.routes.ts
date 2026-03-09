@@ -27,6 +27,17 @@ export const routes: Routes = [
     }
   },
   {
+    path: 'pos/pending-orders',
+    canActivate: [AuthGuard],
+    loadComponent: () =>
+      import('./features/pos/pages/pending-orders/pending-orders.component')
+        .then(m => m.PendingOrdersComponent),
+    data: { 
+      permission: 'pos:Read',
+      title: 'Órdenes Pendientes'
+    }
+  },
+  {
     path: 'pos/payment',
     canActivate: [AuthGuard],
     loadComponent: () =>

@@ -22,6 +22,16 @@ export const POS_ROUTES: Routes = [
     }
   },
   {
+    path: 'pending-orders',
+    loadComponent: () => 
+      import('./pages/pending-orders/pending-orders.component')
+        .then(m => m.PendingOrdersComponent),
+    data: { 
+      permission: 'pos:Read',
+      title: 'Órdenes Pendientes'
+    }
+  },
+  {
     path: 'payment',
     loadComponent: () => 
       import('./pages/payment/payment.component')

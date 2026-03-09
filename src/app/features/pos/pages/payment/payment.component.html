@@ -20,13 +20,13 @@
           (click)="selectOrder(order)"
         >
           <div class="order-header">
-            <span class="order-id">{{ order.id.substring(0, 8) }}...</span>
-            <span class="order-total">{{ formatCurrency(order.grand_total) }}</span>
+            <span class="order-id">{{ order.order_number || order.id.substring(0, 8) }}</span>
+            <span class="order-total">{{ formatCurrency(order.total) }}</span>
           </div>
           <div class="order-details">
             <p class="order-customer">{{ order.customer?.name || 'Sin cliente' }}</p>
             <p class="order-warehouse">{{ order.warehouse?.name }}</p>
-            <p class="order-items">{{ order.lines?.length || 0 }} productos</p>
+            <p class="order-items">{{ order.items_count || 0 }} productos</p>
           </div>
         </div>
       }
@@ -55,13 +55,34 @@
     @if (selectedOrder()) {
       <div class="panel-header">
         <h2>Procesar Pago</h2>
-        <button class="btn-back" (click)="cancel()">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="19" y1="12" x2="5" y2="12"></line>
-            <polyline points="12 19 5 12 12 5"></polyline>
-          </svg>
-          Volver
-        </button>
+        <div class="header-actions">
+          <!-- Cash Shift Status -->
+          @if (activeCashShift()) {
+            <div class="shift-status active">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+              Turno Activo
+            </div>
+          } @else {
+            <button class="btn-open-shift" (click)="openCashShift()" [disabled]="checkingShift()">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+              </svg>
+              {{ checkingShift() ? 'Verificando...' : 'Abrir Turno' }}
+            </button>
+          }
+          
+          <button class="btn-back" (click)="cancel()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="19" y1="12" x2="5" y2="12"></line>
+              <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+            Volver
+          </button>
+        </div>
       </div>
 
       <div class="payment-content">
@@ -70,8 +91,8 @@
           <h3>Resumen de Orden</h3>
           <div class="summary-details">
             <div class="detail-row">
-              <span>ID:</span>
-              <strong>{{ selectedOrder()!.id.substring(0, 8) }}...</strong>
+              <span>Orden:</span>
+              <strong>{{ selectedOrder()!.order_number || selectedOrder()!.id.substring(0, 8) }}</strong>
             </div>
             <div class="detail-row">
               <span>Cliente:</span>
@@ -83,26 +104,48 @@
             </div>
             <div class="detail-row">
               <span>Productos:</span>
-              <strong>{{ selectedOrder()!.lines?.length || 0 }}</strong>
+              <strong>{{ selectedOrder()!.items_count || selectedOrder()!.lines?.length || 0 }}</strong>
             </div>
           </div>
+
+          <!-- Product Lines -->
+          @if (selectedOrder()!.lines && selectedOrder()!.lines.length > 0) {
+            <div class="order-lines">
+              <h4>Productos</h4>
+              @for (line of selectedOrder()!.lines; track line.id) {
+                <div class="line-item">
+                  <div class="line-info">
+                    <span class="line-product">{{ line.product?.name || 'Producto' }}</span>
+                    <span class="line-quantity">x{{ line.quantity }} {{ line.uom?.abbreviation || line.uom?.name || '' }}</span>
+                  </div>
+                  <span class="line-total">{{ formatCurrency(line.line_total || line.subtotal || 0) }}</span>
+                </div>
+              }
+            </div>
+          }
 
           <div class="summary-totals">
             <div class="total-row">
               <span>Subtotal:</span>
-              <strong>{{ formatCurrency(selectedOrder()!.total_subtotal) }}</strong>
+              <strong>{{ formatCurrency(selectedOrder()!.subtotal || 0) }}</strong>
             </div>
             <div class="total-row">
-              <span>IVA:</span>
-              <strong>{{ formatCurrency(selectedOrder()!.total_iva) }}</strong>
+              <span>Impuestos:</span>
+              <strong>{{ formatCurrency(selectedOrder()!.tax || 0) }}</strong>
             </div>
             <div class="total-row">
-              <span>IEPS:</span>
-              <strong>{{ formatCurrency(selectedOrder()!.total_ieps) }}</strong>
+              <span>Descuento:</span>
+              <strong>{{ formatCurrency(selectedOrder()!.discount || 0) }}</strong>
             </div>
+            @if (selectedOrder()!.tip && selectedOrder()!.tip > 0) {
+              <div class="total-row">
+                <span>Propina:</span>
+                <strong>{{ formatCurrency(selectedOrder()!.tip) }}</strong>
+              </div>
+            }
             <div class="total-row grand">
               <span>Total a Pagar:</span>
-              <strong>{{ formatCurrency(selectedOrder()!.grand_total) }}</strong>
+              <strong>{{ formatCurrency(selectedOrder()!.total) }}</strong>
             </div>
           </div>
         </div>

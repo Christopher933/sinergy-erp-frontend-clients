@@ -437,3 +437,110 @@
     grid-template-columns: 1fr;
   }
 }
+
+// Order Lines Styles
+.order-lines {
+  margin: 1.5rem 0;
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 8px;
+
+  h4 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    margin: 0 0 1rem 0;
+    letter-spacing: 0.05em;
+  }
+
+  .line-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #e5e7eb;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    .line-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+
+      .line-product {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #1f2937;
+      }
+
+      .line-quantity {
+        font-size: 0.75rem;
+        color: #6b7280;
+      }
+    }
+
+    .line-total {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #667eea;
+    }
+  }
+}
+
+// Cash Shift Status Styles
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.shift-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+
+  &.active {
+    background: #d1fae5;
+    color: #065f46;
+  }
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+.btn-open-shift {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover:not(:disabled) {
+    background: #5568d3;
+    transform: translateY(-1px);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  svg {
+    flex-shrink: 0;
+  }
+}

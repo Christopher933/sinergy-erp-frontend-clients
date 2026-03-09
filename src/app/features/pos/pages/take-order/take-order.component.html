@@ -14,12 +14,55 @@
 
     <div class="products-grid">
       @for (product of filteredProducts(); track product.id) {
-        <div class="product-card" (click)="addProductToCart(product)">
+        <div 
+          class="product-card" 
+          [class.disabled]="!canAddToCart(product)"
+          [title]="getDisabledTooltip(product)"
+          (click)="canAddToCart(product) && addProductToCart(product)"
+        >
+          <!-- Product Photo -->
+          <div class="product-photo">
+            <img
+              [src]="getProductPhotoUrl(product)"
+              [alt]="product.name"
+              (error)="onPhotoError(product.id)"
+              (load)="onPhotoLoad(product.id)"
+              class="photo-img"
+            />
+            @if (isPhotoLoading(product.id)) {
+              <div class="photo-loading">
+                <div class="spinner-small"></div>
+              </div>
+            }
+          </div>
+          
+          <!-- Product Info -->
           <div class="product-info">
             <h3>{{ product.name }}</h3>
-            <p class="product-sku">{{ product.sku }}</p>
-            <p class="product-price">{{ formatCurrency(product.cost || 0) }}</p>
+            <p class="product-sku">SKU: {{ product.sku }}</p>
+            
+            <!-- Price Display -->
+            <div class="product-price">
+              @if (product.has_price) {
+                <span class="price">{{ formatCurrency(product.cost || 0) }}</span>
+              } @else {
+                <span class="no-price">Sin precio</span>
+              }
+            </div>
           </div>
+          
+          <!-- Add Button -->
+          <button
+            class="btn-add"
+            (click)="addProductToCart(product); $event.stopPropagation()"
+            [disabled]="!canAddToCart(product)"
+          >
+            @if (canAddToCart(product)) {
+              <span>+</span>
+            } @else {
+              <span>⚠</span>
+            }
+          </button>
         </div>
       }
 

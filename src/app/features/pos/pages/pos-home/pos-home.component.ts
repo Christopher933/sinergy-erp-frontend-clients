@@ -19,4 +19,8 @@ export class POSHomeComponent {
   navigateToPayment(): void {
     this.router.navigate(['/pos/payment']);
   }
+  
+  navigateToPendingOrders(): void {
+    this.router.navigate(['/pos/pending-orders']);
+  }
 }

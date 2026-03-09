@@ -6,7 +6,6 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { POSService } from '../../services/pos.service';
 import { ProductService } from '../../../purchase-orders/services/product.service';
 import { WarehouseService } from '../../../purchase-orders/services/warehouse.service';
-import { SalesOrderService } from '../../../sales-orders/services/sales-order.service';
 import { Product } from '../../../purchase-orders/models/product.model';
 import { Warehouse } from '../../../purchase-orders/models/warehouse.model';
 import { POSCartItem } from '../../models/pos.model';
@@ -27,12 +26,21 @@ export class TakeOrderComponent implements OnInit {
   searchTerm = signal<string>('');
   loading = signal<boolean>(false);
   saving = signal<boolean>(false);
+  
+  // New signals for photos and prices
+  loadingPhotos = signal<boolean>(false);
+  loadingPrices = signal<boolean>(false);
+  priceListError = signal<boolean>(false);
+  activePriceListId = signal<string | null>(null);
+  
+  // Photo loading state per product
+  photoLoadingStates = signal<Map<string, boolean>>(new Map());
+  photoErrorStates = signal<Map<string, boolean>>(new Map());
 
   constructor(
     public posService: POSService,
     private productService: ProductService,
     private warehouseService: WarehouseService,
-    private salesOrderService: SalesOrderService,
     private router: Router,
     private snackBar: MatSnackBar
   ) {}
@@ -43,6 +51,7 @@ export class TakeOrderComponent implements OnInit {
 
   loadData(): void {
     this.loading.set(true);
+    this.priceListError.set(false);
 
     this.productService.getProducts().subscribe({
       next: (products) => {
@@ -50,10 +59,30 @@ export class TakeOrderComponent implements OnInit {
         this.products.set(productArray);
         this.filteredProducts.set(productArray);
         this.loading.set(false);
+        
+        // Check if any products lack prices
+        const productsWithoutPrice = productArray.filter((p: Product) => !p.has_price);
+        if (productsWithoutPrice.length > 0) {
+          console.warn(
+            `${productsWithoutPrice.length} products without prices`,
+            productsWithoutPrice.map((p: Product) => p.sku)
+          );
+        }
+        
+        // Check if ALL products lack prices (indicates no price list)
+        if (productArray.length > 0 && productsWithoutPrice.length === productArray.length) {
+          this.priceListError.set(true);
+          this.snackBar.open(
+            'Error al cargar precios. Modo solo lectura.',
+            'Cerrar',
+            { duration: 5000 }
+          );
+        }
       },
       error: (error) => {
         console.error('Error loading products:', error);
         this.loading.set(false);
+        this.snackBar.open('Error al cargar productos', 'Cerrar', { duration: 5000 });
       }
     });
 
@@ -65,7 +94,10 @@ export class TakeOrderComponent implements OnInit {
           this.selectedWarehouse.set(warehouseArray[0].id);
         }
       },
-      error: (error) => console.error('Error loading warehouses:', error)
+      error: (error) => {
+        console.error('Error loading warehouses:', error);
+        this.snackBar.open('Error al cargar almacenes', 'Cerrar', { duration: 5000 });
+      }
     });
   }
 
@@ -84,6 +116,12 @@ export class TakeOrderComponent implements OnInit {
   }
 
   addProductToCart(product: Product): void {
+    // Validate product has price
+    if (!product.has_price) {
+      this.snackBar.open('Este producto no tiene precio configurado', 'Cerrar', { duration: 3000 });
+      return;
+    }
+    
     if (!product.uoms || product.uoms.length === 0) {
       this.snackBar.open('Producto sin unidades de medida', 'Cerrar', { duration: 3000 });
       return;
@@ -145,9 +183,18 @@ export class TakeOrderComponent implements OnInit {
     }
 
     this.saving.set(true);
-    const orderData = this.posService.getCartForOrder(this.selectedWarehouse());
 
-    this.salesOrderService.createOrder(orderData).subscribe({
+    const orderData = {
+      warehouse_id: this.selectedWarehouse(),
+      line_items: cart.items.map(item => ({
+        product_id: item.product_id,
+        uom_id: item.uom_id,
+        quantity: item.quantity,
+        discount_percentage: 0
+      }))
+    };
+
+    this.posService.createOrder(orderData).subscribe({
       next: (order) => {
         this.snackBar.open('Orden creada exitosamente', 'Cerrar', { duration: 3000 });
         this.posService.clearCart();
@@ -172,5 +219,69 @@ export class TakeOrderComponent implements OnInit {
       style: 'currency',
       currency: 'MXN'
     }).format(amount);
+  }
+  
+  /**
+   * Get photo URL for a product
+   * Returns placeholder if no photo or error
+   */
+  getProductPhotoUrl(product: Product): string {
+    if (product.primary_photo_url) {
+      return product.primary_photo_url;
+    }
+    return '/images/product-placeholder.svg';
+  }
+  
+  /**
+   * Check if product photo is loading
+   */
+  isPhotoLoading(productId: string): boolean {
+    return this.photoLoadingStates().get(productId) || false;
+  }
+  
+  /**
+   * Check if product photo has error
+   */
+  hasPhotoError(productId: string): boolean {
+    return this.photoErrorStates().get(productId) || false;
+  }
+  
+  /**
+   * Handle photo load error
+   */
+  onPhotoError(productId: string): void {
+    const errorStates = new Map(this.photoErrorStates());
+    errorStates.set(productId, true);
+    this.photoErrorStates.set(errorStates);
+  }
+  
+  /**
+   * Handle photo load success
+   */
+  onPhotoLoad(productId: string): void {
+    const loadingStates = new Map(this.photoLoadingStates());
+    loadingStates.set(productId, false);
+    this.photoLoadingStates.set(loadingStates);
+  }
+  
+  /**
+   * Check if product can be added to cart
+   */
+  canAddToCart(product: Product): boolean {
+    // Disable all products if price list error
+    if (this.priceListError()) {
+      return false;
+    }
+    return product.has_price === true;
+  }
+  
+  /**
+   * Get tooltip for disabled product
+   */
+  getDisabledTooltip(product: Product): string {
+    if (!product.has_price) {
+      return 'Producto sin precio configurado';
+    }
+    return '';
   }
 }

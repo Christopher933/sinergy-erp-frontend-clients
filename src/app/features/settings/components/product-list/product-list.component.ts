@@ -34,10 +34,11 @@ export class ProductListComponent implements OnDestroy {
   table_config = signal<IDatatableConfig>({
     rows: [],
     columns: [
-      { name: 'SKU', prop: 'sku', sortable: true, canAutoResize: true, width: 120 },
-      { name: 'Nombre', prop: 'name', sortable: true, canAutoResize: true, width: 200 },
-      { name: 'Descripción', prop: 'description', sortable: false, canAutoResize: true, width: 250 },
-      { name: 'Base UoM', prop: 'base_uom_id', sortable: true, canAutoResize: true, width: 120 },
+      { name: 'SKU', prop: 'sku', sortable: true, canAutoResize: true, width: 110 },
+      { name: 'Nombre', prop: 'name', sortable: true, canAutoResize: true, width: 180 },
+      { name: 'Categoría', prop: 'category', sortable: false, canAutoResize: true, width: 130 },
+      { name: 'Subcategoría', prop: 'subcategory', sortable: false, canAutoResize: true, width: 130 },
+      { name: 'Base UoM', prop: 'base_uom_id', sortable: true, canAutoResize: true, width: 100 },
       { name: 'Detalle', prop: 'detail', sortable: false, canAutoResize: true, width: 100 },
     ],
     externalPaging: false,
@@ -74,12 +75,12 @@ export class ProductListComponent implements OnDestroy {
 
   loadProducts() {
     this.table_config.update(c => ({ ...c, loading: true }));
-    
+
     const params: any = {};
     if (this.search && this.search.trim()) {
       params.search = this.search;
     }
-    
+
     this.productService.getProducts(params).pipe(
       takeUntil(this.destroy$)
     ).subscribe({
@@ -152,8 +153,11 @@ export class ProductListComponent implements OnDestroy {
   }
 
   getBaseUoMDisplay(product: Product): string {
-    if (product.base_uom && product.base_uom.code) {
-      return product.base_uom.code;
+    if (product.base_uom && product.base_uom.abbreviation) {
+      return product.base_uom.abbreviation;
+    }
+    if (product.base_uom && product.base_uom.name) {
+      return product.base_uom.name;
     }
     return product.base_uom_id ? product.base_uom_id : '—';
   }
@@ -190,7 +194,7 @@ export class ProductListComponent implements OnDestroy {
 
   deleteProduct(product: Product, event: Event) {
     event.stopPropagation();
-    
+
     const dialogRef = this.dialog.open(AlertDialogComponent, {
       width: '400px',
       data: {

@@ -1,10 +1,15 @@
 import { Injectable, signal } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable } from 'rxjs';
 import { POSCart, POSCartItem } from '../models/pos.model';
+import { environment } from '../../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class POSService {
+  private readonly API_URL = `${environment.api}/tenant/pos`;
+  
   private cartState = signal<POSCart>({
     items: [],
     total_subtotal: 0,
@@ -14,6 +19,8 @@ export class POSService {
   });
 
   cart = this.cartState.asReadonly();
+
+  constructor(private http: HttpClient) {}
 
   /**
    * Add item to cart
@@ -133,5 +140,221 @@ export class POSService {
         ieps_percentage: item.ieps_percentage
       }))
     };
+  }
+  
+  /**
+   * Create POS order
+   */
+  createOrder(orderData: any): Observable<any> {
+    return this.http.post(`${this.API_URL}/orders`, orderData);
+  }
+  
+  /**
+   * Get all POS orders with optional filters
+   */
+  getOrders(params?: { page?: number; limit?: number; status?: string }): Observable<any> {
+    let httpParams = new HttpParams();
+    if (params?.page) httpParams = httpParams.set('page', params.page.toString());
+    if (params?.limit) httpParams = httpParams.set('limit', params.limit.toString());
+    if (params?.status) httpParams = httpParams.set('status', params.status);
+    
+    return this.http.get(`${this.API_URL}/orders`, { params: httpParams });
+  }
+  
+  /**
+   * Get POS order by ID
+   */
+  getOrderById(orderId: string): Observable<any> {
+    return this.http.get(`${this.API_URL}/orders/${orderId}`);
+  }
+  
+  /**
+   * Get active orders
+   */
+  getActiveOrders(): Observable<any> {
+    return this.http.get(`${this.API_URL}/orders/active`);
+  }
+  
+  /**
+   * Cancel order
+   */
+  cancelOrder(orderId: string): Observable<any> {
+    return this.http.post(`${this.API_URL}/orders/${orderId}/cancel`, {});
+  }
+  
+  // ========== LINE ITEMS ==========
+  
+  /**
+   * Add line to order
+   */
+  addLineToOrder(orderId: string, lineData: any): Observable<any> {
+    return this.http.post(`${this.API_URL}/orders/${orderId}/lines`, lineData);
+  }
+  
+  /**
+   * Update line in order
+   */
+  updateLine(orderId: string, lineId: string, lineData: any): Observable<any> {
+    return this.http.patch(`${this.API_URL}/orders/${orderId}/lines/${lineId}`, lineData);
+  }
+  
+  /**
+   * Delete line from order
+   */
+  deleteLine(orderId: string, lineId: string): Observable<any> {
+    return this.http.delete(`${this.API_URL}/orders/${orderId}/lines/${lineId}`);
+  }
+  
+  /**
+   * Change line status
+   */
+  changeLineStatus(orderId: string, lineId: string, status: string): Observable<any> {
+    return this.http.patch(`${this.API_URL}/orders/${orderId}/lines/${lineId}/status`, { status });
+  }
+  
+  // ========== PAYMENTS ==========
+  
+  /**
+   * Process simple payment
+   */
+  processPayment(orderId: string, paymentData: {
+    payment_method: string;
+    amount_paid: number;
+    tip?: number;
+  }): Observable<any> {
+    return this.http.post(`${this.API_URL}/orders/${orderId}/payment`, paymentData);
+  }
+  
+  /**
+   * Process split payment
+   */
+  processSplitPayment(orderId: string, paymentData: {
+    payments: Array<{ payment_method: string; amount: number }>;
+    tip?: number;
+  }): Observable<any> {
+    return this.http.post(`${this.API_URL}/orders/${orderId}/split-payment`, paymentData);
+  }
+  
+  // ========== CASH SHIFTS ==========
+  
+  /**
+   * Open cash shift
+   */
+  openCashShift(shiftData: {
+    warehouse_id: string;
+    cashier_id: string;
+    opening_balance: number;
+  }): Observable<any> {
+    return this.http.post(`${this.API_URL}/cash-shifts/open`, shiftData);
+  }
+  
+  /**
+   * Get active cash shift
+   */
+  getActiveCashShift(warehouseId: string): Observable<any> {
+    const params = new HttpParams().set('warehouse_id', warehouseId);
+    return this.http.get(`${this.API_URL}/cash-shifts/current`, { params });
+  }
+  
+  /**
+   * Close cash shift
+   */
+  closeCashShift(shiftId: string, closeData: {
+    closing_balance: number;
+    notes?: string;
+  }): Observable<any> {
+    return this.http.post(`${this.API_URL}/cash-shifts/${shiftId}/close`, closeData);
+  }
+  
+  /**
+   * List cash shifts
+   */
+  getCashShifts(params?: { page?: number; limit?: number }): Observable<any> {
+    let httpParams = new HttpParams();
+    if (params?.page) httpParams = httpParams.set('page', params.page.toString());
+    if (params?.limit) httpParams = httpParams.set('limit', params.limit.toString());
+    
+    return this.http.get(`${this.API_URL}/cash-shifts`, { params: httpParams });
+  }
+  
+  // ========== TABLES ==========
+  
+  /**
+   * List tables
+   */
+  getTables(params?: { warehouse_id?: string; status?: string }): Observable<any> {
+    let httpParams = new HttpParams();
+    if (params?.warehouse_id) httpParams = httpParams.set('warehouse_id', params.warehouse_id);
+    if (params?.status) httpParams = httpParams.set('status', params.status);
+    
+    return this.http.get(`${this.API_URL}/tables`, { params: httpParams });
+  }
+  
+  /**
+   * Create table
+   */
+  createTable(tableData: {
+    warehouse_id: string;
+    table_number: string;
+    zone?: string;
+    capacity?: number;
+  }): Observable<any> {
+    return this.http.post(`${this.API_URL}/tables`, tableData);
+  }
+  
+  /**
+   * Update table
+   */
+  updateTable(tableId: string, tableData: { status?: string }): Observable<any> {
+    return this.http.patch(`${this.API_URL}/tables/${tableId}`, tableData);
+  }
+  
+  /**
+   * Release table
+   */
+  releaseTable(tableId: string): Observable<any> {
+    return this.http.post(`${this.API_URL}/tables/${tableId}/release`, {});
+  }
+  
+  // ========== REPORTS ==========
+  
+  /**
+   * Get daily sales report
+   */
+  getDailySales(params: { date: string; warehouse_id?: string }): Observable<any> {
+    let httpParams = new HttpParams().set('date', params.date);
+    if (params.warehouse_id) httpParams = httpParams.set('warehouse_id', params.warehouse_id);
+    
+    return this.http.get(`${this.API_URL}/reports/daily-sales`, { params: httpParams });
+  }
+  
+  /**
+   * Get waiter performance report
+   */
+  getWaiterPerformance(params: { start_date: string; end_date: string }): Observable<any> {
+    const httpParams = new HttpParams()
+      .set('start_date', params.start_date)
+      .set('end_date', params.end_date);
+    
+    return this.http.get(`${this.API_URL}/reports/waiter-performance`, { params: httpParams });
+  }
+  
+  /**
+   * Get top products report
+   */
+  getTopProducts(params: { start_date: string; end_date: string; limit?: number }): Observable<any> {
+    let httpParams = new HttpParams()
+      .set('start_date', params.start_date)
+      .set('end_date', params.end_date);
+    if (params.limit) httpParams = httpParams.set('limit', params.limit.toString());
+    
+    return this.http.get(`${this.API_URL}/reports/top-products`, { params: httpParams });
+  }
+  
+  /**
+   * Get shift summary report
+   */
+  getShiftSummary(shiftId: string): Observable<any> {
+    return this.http.get(`${this.API_URL}/reports/shift-summary/${shiftId}`);
   }
 }
