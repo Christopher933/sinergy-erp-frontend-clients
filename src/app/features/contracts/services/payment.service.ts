@@ -44,7 +44,7 @@ export interface PaymentReceiptTemplate {
   sample_html: string;
 }
 
-export type ReceiptKind = 'payment' | 'downpayment';
+export type ReceiptKind = 'payment' | 'downpayment' | 'hoa';
 
 @Injectable({
   providedIn: 'root',
@@ -131,7 +131,8 @@ export class PaymentService {
   }
 
   private receiptBase(contractId: string, paymentId: string, kind: ReceiptKind): string {
-    const segment = kind === 'downpayment' ? 'downpayment-payments' : 'payments';
+    const segment =
+      kind === 'downpayment' ? 'downpayment-payments' : kind === 'hoa' ? 'hoa-payments' : 'payments';
     return `/tenant/contracts/${contractId}/${segment}/${paymentId}/receipt`;
   }
 

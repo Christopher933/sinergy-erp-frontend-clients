@@ -112,6 +112,12 @@
           <td>{{ payment.payment_method || '—' }}</td>
           <td>
             <div class="row-actions">
+              <button *ngIf="hasReceipt(payment)" type="button" class="row-action" (click)="downloadReceipt(payment)" [matTooltip]="'Descargar recibo PDF'">
+                <lucide-icon [img]="FileDown" [size]="16"></lucide-icon>
+              </button>
+              <button *ngIf="hasReceipt(payment)" type="button" class="row-action" (click)="sendReceipt(payment)" [matTooltip]="'Enviar recibo por correo'">
+                <lucide-icon [img]="Mail" [size]="16"></lucide-icon>
+              </button>
               <button *ngIf="canRegisterPayment(payment)" type="button" class="row-action" (click)="registerPayment(payment)" [matTooltip]="'Registrar pago'">
                 <lucide-icon [img]="DollarSign" [size]="16"></lucide-icon>
               </button>

@@ -11,7 +11,7 @@
   <div class="modal-body receipt-layout" *ngIf="!loading() && !showTemplate">
     <div class="receipt-form">
       <p class="text-sm text-slate-600">
-        {{ data.kind === 'downpayment' ? 'Enganche' : 'Pago' }} {{ data.payment.payment_number }}. El correo lleva el PDF del recibo.
+        {{ data.kind === 'downpayment' ? 'Enganche' : data.kind === 'hoa' ? 'Cuota HOA' : 'Pago' }} {{ data.payment.payment_number }}. El correo lleva el PDF del recibo.
       </p>
       <app-receipt-branding [contractId]="data.contractId" [embedded]="true" (saved)="refreshCompose()"></app-receipt-branding>
       <label class="block text-sm font-medium text-gray-700 mb-1 mt-4">Para</label>

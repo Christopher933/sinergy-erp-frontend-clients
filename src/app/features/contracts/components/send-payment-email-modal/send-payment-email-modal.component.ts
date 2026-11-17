@@ -9,6 +9,7 @@ import {
   PaymentReceiptCompose,
   PaymentReceiptTemplate,
   PaymentService,
+  ReceiptKind,
 } from '../../services/payment.service';
 import { ReceiptBrandingComponent } from '../receipt-branding/receipt-branding.component';
 
@@ -36,7 +37,7 @@ export class SendPaymentEmailModalComponent implements OnInit {
     private interceptorService: InterceptorService,
     private sanitizer: DomSanitizer,
     public dialogRef: MatDialogRef<SendPaymentEmailModalComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: { payment: Payment; contractId: string; kind?: 'payment' | 'downpayment' },
+    @Inject(MAT_DIALOG_DATA) public data: { payment: Payment; contractId: string; kind?: ReceiptKind },
   ) {}
 
   ngOnInit() {
